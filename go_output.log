@@ -1,2 +1,10 @@
-2024/11/06 06:56:23 Starting server on :8080
+2024/11/06 16:44:14 Starting server on :8080
+Decoded item: {IIId:1 Iname:Broccoli Sprice:0 Idescription:Vitamin A,C,K}
+Decoded item: {IIId:1 Iname:Broccoli Sprice:0 Idescription:Vitamin A,C,K}
+Decoded item: {IIId:1 Iname:Broccoli Sprice:0 Idescription:Vitamin A,C,K}
+Decoded item: {IIId:1 Iname:Broccoli Sprice:0 Idescription:Vitamin A,C,K}
+Decoded item: {IIId:1 Iname:Broccoli Sprice:0 Idescription:Vitamin A,C,K}
+Decoded item: {IIId:1 Iname:Broccoli Sprice:5 Idescription:Vitamin A,C,K}
+Decoded item: {IIId:1 Iname:Broccoli Sprice:5.2 Idescription:Vitamin A,C,K}
+Decoded item: {Iname:Lentil Sprice:20 Idescription:Lentil}
 signal: interrupt

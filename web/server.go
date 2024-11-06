@@ -145,6 +145,7 @@ func (s *Server) modifyItem(w http.ResponseWriter, r *http.Request) {
 		// 	http.Error(w, "invalid request body", http.StatusBadRequest)
 		// 	return
 		// }
+		fmt.Printf("Decoded item: %+v\n", item)
 		_, err := s.db.ExecuteQuery("UPDATE ITEM SET Iname = ?, Sprice = ?, Idescription = ? WHERE Iid = ?", item.Iname, item.Sprice, item.Idescription, item.IIId)
 		if err != nil {
 			http.Error(w, "failed to update item", http.StatusInternalServerError)

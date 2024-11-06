@@ -7,9 +7,10 @@ export default function Dashboard() {
   const loading = useSignal(false);
   const itemName = useSignal("");
   const itemId = useSignal("");
-  const itemPrice = useSignal(0);
+  const itemPrice = useSignal(0.0);
   const itemDescription = useSignal("");
   const apiUrl = "http://localhost:8000/api";
+  const selectedItem = useSignal({});
 
   // CRUD Operations
 
@@ -26,7 +27,7 @@ export default function Dashboard() {
   const addItem = async () => {
     const newItem = {
       Iname: itemName.value,
-      Sprice: itemPrice.value,
+      Sprice: Number(itemPrice.value),
       Idescription: itemDescription.value,
     };
     console.log("Sending item data:", JSON.stringify(newItem));
@@ -38,13 +39,32 @@ export default function Dashboard() {
     fetchItems(); // Refresh the list
   };
 
+  const search = async () => {
+    setLoading(true);
+    if (searchName.value) {
+      const response = await fetch(
+        `${apiUrl}/item/search?name=${searchName.value}`,
+      );
+      const data = await response.json();
+      results.value = Array.isArray(data) ? data : [data];
+    } else if (searchId.value) {
+      const response = await fetch(
+        `${apiUrl}/item/search?id=${searchId.value}`,
+      );
+      const data = await response.json();
+      results.value = Array.isArray(data) ? data : [data];
+    }
+    setLoading(false);
+  };
+
   // Update Item
   const updateItem = async () => {
+    console.log(selectedItem.value);
     const updatedItem = {
-      iId: itemId.value,
-      Iname: itemName.value,
-      Sprice: itemPrice.value,
-      Idescription: itemDescription.value,
+      iId: selectedItem.value.iId,
+      Iname: selectedItem.value.Iname,
+      Sprice: Number(selectedItem.value.Sprice),
+      Idescription: selectedItem.value.Idescription,
     };
     await fetch(`${apiUrl}/item`, {
       method: "PUT",
@@ -52,6 +72,8 @@ export default function Dashboard() {
       body: JSON.stringify(updatedItem),
     });
     fetchItems(); // Refresh the list
+
+    showPopup.value = false;
   };
 
   // Delete Item
@@ -69,12 +91,46 @@ export default function Dashboard() {
     loading.value = state;
   };
 
+  const showPopup = useSignal(false);
+
+  const togglePopup = () => {
+    showPopup.value = !showPopup.value;
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 flex justify-center items-center p-4">
       <div className="max-w-4xl w-full bg-white rounded-lg shadow-lg p-6">
         <h1 className="text-3xl font-bold text-center text-blue-600 mb-6">
           Item Dashboard
         </h1>
+
+        {/* Search Form */}
+        {/* Search Form */}
+        <div className="mb-4">
+          <h2 className="text-xl font-semibold text-blue-600">Search Form</h2>
+          <div className="grid grid-cols-2 gap-4 mt-2">
+            <input
+              type="text"
+              placeholder="Search by ID"
+              value={searchId.value}
+              onInput={(e) => (searchId.value = e.target.value)}
+              className="p-3 border rounded"
+            />
+            <input
+              type="text"
+              placeholder="Search by Name"
+              value={searchName.value}
+              onInput={(e) => (searchName.value = e.target.value)}
+              className="p-3 border rounded"
+            />
+          </div>
+          <button
+            onClick={search}
+            className="mt-4 bg-blue-600 text-white py-2 px-4 rounded"
+          >
+            Search
+          </button>
+        </div>
 
         {/* Form to Add Item */}
         <div className="mb-4">
@@ -91,7 +147,7 @@ export default function Dashboard() {
               type="text"
               placeholder="Price"
               value={itemPrice.value}
-              onInput={(e) => (itemPrice.value = e.target.value)}
+              onInput={(e) => (itemPrice.value = e.target.value.toString())}
               className="p-3 border rounded"
             />
             <input
@@ -107,47 +163,6 @@ export default function Dashboard() {
             className="mt-4 bg-green-600 text-white py-2 px-4 rounded"
           >
             Add Item
-          </button>
-        </div>
-
-        {/* Form to Update Item */}
-        <div className="mb-4">
-          <h2 className="text-xl font-semibold text-yellow-500">Update Item</h2>
-          <div className="grid grid-cols-2 gap-4 mt-2">
-            <input
-              type="text"
-              placeholder="Item ID"
-              value={itemId.value}
-              onInput={(e) => (itemId.value = e.target.value)}
-              className="p-3 border rounded"
-            />
-            <input
-              type="text"
-              placeholder="Item Name"
-              value={itemName.value}
-              onInput={(e) => (itemName.value = e.target.value)}
-              className="p-3 border rounded"
-            />
-            <input
-              type="text"
-              placeholder="Price"
-              value={itemPrice.value}
-              onInput={(e) => (itemPrice.value = e.target.value)}
-              className="p-3 border rounded"
-            />
-            <input
-              type="text"
-              placeholder="Description"
-              value={itemDescription.value}
-              onInput={(e) => (itemDescription.value = e.target.value)}
-              className="p-3 border rounded"
-            />
-          </div>
-          <button
-            onClick={updateItem}
-            className="mt-4 bg-yellow-500 text-white py-2 px-4 rounded"
-          >
-            Update Item
           </button>
         </div>
 
@@ -189,6 +204,16 @@ export default function Dashboard() {
                     >
                       Delete
                     </button>
+                    <button
+                      //  show edit form
+                      onClick={() => {
+                        selectedItem.value = item;
+                        togglePopup();
+                      }}
+                      className="bg-yellow-500 text-white py-1 px-2 rounded"
+                    >
+                      Edit
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -196,6 +221,50 @@ export default function Dashboard() {
           </table>
         )}
       </div>
+      {showPopup == true ? (
+        <div className="fixed top-0 left-0 w-full h-full bg-gray-900 bg-opacity-50 flex justify-center items-center">
+          <div className="bg-white p-6 rounded-lg shadow-lg">
+            <h2 className="text-xl font-semibold text-blue-600">Edit Item</h2>
+            <div className="grid grid-cols-2 gap-4 mt-2">
+              <input
+                type="text"
+                placeholder="Item Name"
+                value={selectedItem.value.Iname}
+                onInput={(e) => (selectedItem.value.Iname = e.target.value)}
+                className="p-3 border rounded"
+              />
+              <input
+                type="text"
+                placeholder="Price"
+                value={selectedItem.value.Sprice}
+                onInput={(e) => (selectedItem.value.Sprice = e.target.value)}
+                className="p-3 border rounded"
+              />
+              <input
+                type="text"
+                placeholder="Description"
+                value={selectedItem.value.Idescription}
+                onInput={(e) =>
+                  (selectedItem.value.Idescription = e.target.value)
+                }
+                className="p-3 border rounded"
+              />
+            </div>
+            <button
+              onClick={updateItem}
+              className="mt-4 bg-yellow-500 text-white py-2 px-4 rounded"
+            >
+              Update Item
+            </button>
+            <button
+              onClick={togglePopup}
+              className="mt-4 bg-red-600 text-white py-2 px-4 rounded"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
