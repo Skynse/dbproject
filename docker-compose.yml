@@ -1,0 +1,64 @@
+version: "3.7"
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.go
+    security_opt:
+      - label=disable
+    environment:
+      - DB_HOST=db
+    ports:
+      - "8000:8000"
+    networks:
+      - project_network
+    depends_on:
+      db:
+        condition: service_healthy # This ensures db is ready before starting api
+      frontend:
+        condition: service_started
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.deno
+    security_opt:
+      - label=disable
+    environment:
+      - PORT=8001
+      - DENO_ENV=production
+    ports:
+      - "8001:8001"
+    networks:
+      - project_network
+
+  db:
+    image: mysql:8.0
+    security_opt:
+      - label=disable
+    command:
+      - --default-authentication-plugin=mysql_native_password
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    restart: always
+    environment:
+      - MYSQL_ALLOW_EMPTY_PASSWORD=yes
+      - MYSQL_DATABASE=BEST_PRICE_DB
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1"]
+      timeout: 5s
+      retries: 10
+      interval: 5s
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql:Z
+    networks:
+      - project_network
+
+volumes:
+  mysql_data:
+
+networks:
+  project_network:
+    driver: bridge

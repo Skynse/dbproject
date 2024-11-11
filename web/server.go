@@ -38,7 +38,10 @@ func (s *Server) getItem(w http.ResponseWriter, r *http.Request) {
 	var rows *sql.Rows
 	var err error
 
-	if query.Get("name") != "" {
+	if query.Get("name") != "" && query.Get("id") != "" {
+		// If both name and id are provided, search using OR
+		rows, err = s.db.ExecuteQuery("SELECT * FROM ITEM WHERE Iname LIKE ? OR Iid = ?", query.Get("name"), query.Get("id"))
+	} else if query.Get("name") != "" {
 		rows, err = s.db.ExecuteQuery("SELECT * FROM ITEM WHERE Iname LIKE ?", query.Get("name"))
 	} else if query.Get("id") != "" {
 		rows, err = s.db.ExecuteQuery("SELECT * FROM ITEM WHERE Iid = ?", query.Get("id"))
@@ -53,16 +56,18 @@ func (s *Server) getItem(w http.ResponseWriter, r *http.Request) {
 	}
 	defer rows.Close()
 
-	var item db_core.Item
-	if rows.Next() {
+	var items []db_core.Item
+	for rows.Next() {
+		var item db_core.Item
 		if err := rows.Scan(&item.IIId, &item.Iname, &item.Sprice, &item.Idescription); err != nil {
 			http.Error(w, "failed to scan item", http.StatusInternalServerError)
 			return
 		}
+		items = append(items, item)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(item)
+	json.NewEncoder(w).Encode(items)
 
 }
 
@@ -174,5 +179,5 @@ func (s *Server) enableCors(w *http.ResponseWriter) {
 }
 
 func (s *Server) Start() error {
-	return http.ListenAndServe(":8000", nil)
+	return http.ListenAndServe(":8020", nil)
 }

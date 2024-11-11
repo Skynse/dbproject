@@ -3,6 +3,7 @@ package db_core
 import (
 	"database/sql"
 	"fmt"
+	"os"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -33,23 +34,47 @@ func (d *DBService) Close() error {
 }
 
 func connect() (*sql.DB, error) {
-	dsn := "root:@tcp(localhost:3306)/BEST_PRICE_DB?parseTime=true"
-	db, err := sql.Open("mysql", dsn)
+	// Get connection details from environment or use defaults
+	host := os.Getenv("DB_HOST")
+	if host == "" {
+		host = "localhost" // Default to container service name
+	}
+
+	fmt.Printf("Attempting to connect to MySQL at host: %s\n", host)
+
+	dsn := fmt.Sprintf("root:@tcp(%s:3306)/BEST_PRICE_DB?parseTime=true", host)
+
+	var db *sql.DB
+	var err error
+
+	// Add retry logic for container startup timing
+	for i := 0; i < 30; i++ {
+		db, err = sql.Open("mysql", dsn)
+		if err != nil {
+			fmt.Printf("Failed to open database connection: %v\n", err)
+			time.Sleep(1 * time.Second)
+			continue
+		}
+
+		err = db.Ping()
+		if err == nil {
+			fmt.Println("Successfully connected to database!")
+			break
+		}
+
+		fmt.Printf("Attempt %d: Database ping failed: %v\n", i+1, err)
+		db.Close()
+		time.Sleep(1 * time.Second)
+	}
+
 	if err != nil {
-		return nil, fmt.Errorf("error opening database: %w", err)
+		return nil, fmt.Errorf("error connecting to the database after retries: %w", err)
 	}
 
 	// Set connection pool settings
 	db.SetMaxOpenConns(25)
 	db.SetMaxIdleConns(25)
 	db.SetConnMaxLifetime(5 * time.Minute)
-
-	// Verify the connection
-	err = db.Ping()
-	if err != nil {
-		db.Close() // Close the database if ping fails
-		return nil, fmt.Errorf("error connecting to the database: %w", err)
-	}
 
 	return db, nil
 }

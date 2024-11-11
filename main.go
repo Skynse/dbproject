@@ -20,7 +20,7 @@ func main() {
 	server.SetupRoutes()
 
 	// Start the server
-	log.Println("Starting server on :8080")
+	log.Println("Starting server on :8000")
 	if err := server.Start(); err != nil {
 		log.Fatalf("Server failed to start: %v", err)
 	}

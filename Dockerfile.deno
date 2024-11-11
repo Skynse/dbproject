@@ -1,0 +1,33 @@
+# Use the official Deno image as base
+FROM docker.io/denoland/deno:alpine
+
+# Set working directory
+WORKDIR /app
+
+# Copy the entire web directory
+# This includes all necessary Fresh framework files
+COPY web/static/js ./
+
+# Install deno dependencies globally
+RUN deno cache --import-map=deno.json dev.ts \
+    && deno cache --import-map=deno.json fresh.gen.ts \
+    && deno cache --import-map=deno.json main.ts
+
+# Cache npm dependencies for Tailwind
+RUN deno cache --node-modules-dir npm:tailwindcss@3.4.1 \
+    npm:postcss@8.4.35 \
+    npm:autoprefixer@10.4.17 \
+    npm:cssnano@6.0.3
+
+# Create production build
+RUN deno task build
+
+# Expose the port Fresh runs on
+EXPOSE 8001
+
+# Set environment variables
+ENV DENO_DEPLOYMENT_ID=${DENO_DEPLOYMENT_ID:-local}
+ENV DENO_ENV=production
+
+# Run the Fresh server in production mode
+CMD ["deno", "run", "-A", "main.ts"]

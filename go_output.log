@@ -1,10 +1,3 @@
-2024/11/06 16:44:14 Starting server on :8080
-Decoded item: {IIId:1 Iname:Broccoli Sprice:0 Idescription:Vitamin A,C,K}
-Decoded item: {IIId:1 Iname:Broccoli Sprice:0 Idescription:Vitamin A,C,K}
-Decoded item: {IIId:1 Iname:Broccoli Sprice:0 Idescription:Vitamin A,C,K}
-Decoded item: {IIId:1 Iname:Broccoli Sprice:0 Idescription:Vitamin A,C,K}
-Decoded item: {IIId:1 Iname:Broccoli Sprice:0 Idescription:Vitamin A,C,K}
-Decoded item: {IIId:1 Iname:Broccoli Sprice:5 Idescription:Vitamin A,C,K}
-Decoded item: {IIId:1 Iname:Broccoli Sprice:5.2 Idescription:Vitamin A,C,K}
-Decoded item: {Iname:Lentil Sprice:20 Idescription:Lentil}
-signal: interrupt
+Attempting to connect to MySQL at host: localhost
+Successfully connected to database!
+2024/11/11 03:26:31 Starting server on :8000

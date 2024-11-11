@@ -9,7 +9,7 @@ export default function Dashboard() {
   const itemId = useSignal("");
   const itemPrice = useSignal(0.0);
   const itemDescription = useSignal("");
-  const apiUrl = "http://localhost:8000/api";
+  const apiUrl = "http://localhost:8020/api";
   const selectedItem = useSignal({});
 
   // CRUD Operations
@@ -41,7 +41,13 @@ export default function Dashboard() {
 
   const search = async () => {
     setLoading(true);
-    if (searchName.value) {
+    if (searchName.value && searchId.value) {
+      const response = await fetch(
+        `${apiUrl}/item/search?name=${searchName.value}&id=${searchId.value}`,
+      );
+      const data = await response.json();
+      results.value = Array.isArray(data) ? data : [data];
+    } else if (searchName.value) {
       const response = await fetch(
         `${apiUrl}/item/search?name=${searchName.value}`,
       );
